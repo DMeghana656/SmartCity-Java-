@@ -1,0 +1,290 @@
+public class Main {
+
+    public static void main(String[] args) {
+
+        System.out.println("=================================");
+        System.out.println(" SMART CITY NETWORK SIMULATION");
+        System.out.println("=================================");
+
+
+        // =================================
+        // TRAFFIC DATA
+        // =================================
+
+        TrafficData mainRoad =
+                new TrafficData("Main Road", 120);
+
+        TrafficData hospitalRoad =
+                new TrafficData("Hospital Road", 35);
+
+        TrafficData schoolRoad =
+                new TrafficData("School Road", 90);
+
+        TrafficData marketRoad =
+                new TrafficData("Market Road", 150);
+
+        TrafficData busStation =
+                new TrafficData("Bus Station", 70);
+
+        TrafficData railwayRoad =
+                new TrafficData("Railway Road", 180);
+
+
+        // =================================
+        // CONGESTION ANALYSIS
+        // =================================
+
+        System.out.println("\nCONGESTION ANALYSIS");
+        System.out.println("---------------------------------");
+
+        System.out.println(
+                mainRoad.getRoadName() + " : "
+                + mainRoad.getVehicleCount() + " vehicles -> "
+                + CongestionAnalyzer.analyze(
+                        mainRoad.getVehicleCount()
+                )
+        );
+
+        System.out.println(
+                hospitalRoad.getRoadName() + " : "
+                + hospitalRoad.getVehicleCount() + " vehicles -> "
+                + CongestionAnalyzer.analyze(
+                        hospitalRoad.getVehicleCount()
+                )
+        );
+
+        System.out.println(
+                schoolRoad.getRoadName() + " : "
+                + schoolRoad.getVehicleCount() + " vehicles -> "
+                + CongestionAnalyzer.analyze(
+                        schoolRoad.getVehicleCount()
+                )
+        );
+
+        System.out.println(
+                marketRoad.getRoadName() + " : "
+                + marketRoad.getVehicleCount() + " vehicles -> "
+                + CongestionAnalyzer.analyze(
+                        marketRoad.getVehicleCount()
+                )
+        );
+
+        System.out.println(
+                busStation.getRoadName() + " : "
+                + busStation.getVehicleCount() + " vehicles -> "
+                + CongestionAnalyzer.analyze(
+                        busStation.getVehicleCount()
+                )
+        );
+
+        System.out.println(
+                railwayRoad.getRoadName() + " : "
+                + railwayRoad.getVehicleCount() + " vehicles -> "
+                + CongestionAnalyzer.analyze(
+                        railwayRoad.getVehicleCount()
+                )
+        );
+
+
+        // =================================
+        // PACKET TEST
+        // =================================
+
+        System.out.println("\nPACKET TEST");
+        System.out.println("---------------------------------");
+
+        Packet packet1 = new Packet(
+                1,
+                "Traffic Department",
+                "Management",
+                "TCP",
+                1024
+        );
+
+        Packet packet2 = new Packet(
+                2,
+                "CCTV Network",
+                "Management",
+                "UDP",
+                512
+        );
+
+        packet1.displayPacket();
+        packet2.displayPacket();
+
+
+        // =================================
+        // PACKET GENERATION
+        // =================================
+
+        System.out.println("\nPACKET GENERATION");
+        System.out.println("---------------------------------");
+
+        String congestion =
+                CongestionAnalyzer.analyze(
+                        mainRoad.getVehicleCount()
+                );
+
+        int packetCount =
+                PacketGenerator.getPacketCountForCongestion(
+                        congestion
+                );
+
+        System.out.println(
+                "Main Road Congestion : " + congestion
+        );
+
+        System.out.println(
+                "Packets Generated    : " + packetCount
+        );
+
+
+        // =================================
+        // BUFFER MANAGEMENT
+        // =================================
+
+        System.out.println("\nBUFFER MANAGEMENT");
+        System.out.println("---------------------------------");
+
+        BufferManager buffer =
+                new BufferManager(10);
+
+        for (int i = 0; i < packetCount; i++) {
+
+            Packet packet =
+                    PacketGenerator.generatePacket(
+                            "Main Road",
+                            "Traffic Management Center",
+                            "TCP",
+                            1024
+                    );
+
+            buffer.addPacket(packet);
+        }
+
+        System.out.println(
+                "\nPackets currently in buffer: "
+                + buffer.getCurrentSize()
+        );
+
+
+        // =================================
+        // LEAKY BUCKET
+        // =================================
+
+        System.out.println("\nLEAKY BUCKET PROCESSING");
+        System.out.println("---------------------------------");
+
+        LeakyBucket bucket =
+                new LeakyBucket(10);
+
+
+        // Move packets from BufferManager
+        // into LeakyBucket
+
+        int packetsInBuffer =
+                buffer.getCurrentSize();
+
+        for (int i = 0; i < packetsInBuffer; i++) {
+
+            Packet packet =
+                    buffer.removePacket();
+
+            if (packet != null) {
+
+                bucket.addPacket(packet);
+            }
+        }
+
+
+        // =================================
+        // PACKET TRANSMISSION
+        // =================================
+
+        System.out.println("\nPACKET TRANSMISSION");
+        System.out.println("---------------------------------");
+
+        int packetsToTransmit =
+                bucket.getCurrentPackets();
+
+        for (int i = 0; i < packetsToTransmit; i++) {
+
+            bucket.transmitPacket();
+        }
+
+
+        // =================================
+        // BUFFER STATISTICS
+        // =================================
+
+        buffer.displayStatistics();
+
+
+        // =================================
+        // NETWORK PERFORMANCE RESULTS
+        // =================================
+
+        System.out.println("\nNETWORK PERFORMANCE RESULTS");
+        System.out.println("---------------------------------");
+
+        System.out.println(
+                "Congestion Level     : " + congestion
+        );
+
+        System.out.println(
+                "Packets Generated    : "
+                + packetCount
+        );
+
+        System.out.println(
+                "Buffer Accepted      : "
+                + buffer.getTotalAdded()
+        );
+
+        System.out.println(
+                "Buffer Rejected      : "
+                + buffer.getTotalRejected()
+        );
+
+        System.out.println(
+                "Leaky Bucket Dropped : "
+                + bucket.getDroppedPackets()
+        );
+
+        System.out.println(
+                "Transmitted Packets  : "
+                + bucket.getTransmittedPackets()
+        );
+
+        System.out.println(
+                "Packets Remaining    : "
+                + bucket.getCurrentPackets()
+        );
+
+        System.out.printf(
+                "Packet Drop Rate     : %.2f%%%n",
+                bucket.getDropRate()
+        );
+
+
+        // =================================
+        // PERFORMANCE ANALYZER
+        // =================================
+
+        PerformanceAnalyzer.displayPerformance(
+                packetCount,
+                bucket.getTransmittedPackets(),
+                bucket.getDroppedPackets()
+                        + buffer.getTotalRejected(),
+                1024,
+                5.0,
+                buffer.getCurrentSize(),
+                buffer.getCapacity()
+        );
+
+
+        System.out.println("\n=================================");
+        System.out.println(" SMART CITY SIMULATION COMPLETE");
+        System.out.println("=================================");
+    }
+}
